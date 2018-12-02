@@ -1,0 +1,1381 @@
+//This program uses two arrays to calculate the inventory for Webster field
+//Then, it writes the results in an excel file using Apache POI
+
+
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFFont;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.util.ArrayList;
+import java.util.Scanner;
+
+public class WebsterInventory {
+    public static void main(String[] args) {
+
+
+
+        //Creating the excel workbook using Apache poi
+        /*
+            Creating one document with two sheets
+         */
+        XSSFWorkbook workbook = new XSSFWorkbook();
+        //Creating the sheet and naming it
+        XSSFSheet sheet = workbook.createSheet("Webster Inv");//For the inventory
+        XSSFSheet sheet2 = workbook.createSheet("Deliveries");//For the deliveries
+
+
+        //Creating the header row in the sheet. Using 0 base index
+        Row header = sheet.createRow(0);
+        //This is the reference used at the bottom when creating new cells and assigning values
+        Row header2 = sheet2.createRow(0);//For the deliveries
+
+        //Creating a style for the header
+        CellStyle headerStyle = workbook.createCellStyle();
+        //Adding a BOLD font to the header
+        XSSFFont font = workbook.createFont();
+        font.setFontName("Arial");//Naming the specific font to be used
+        font.setBold(true); //Has to be boolean for BOLD font
+        headerStyle.setFont(font);//Adding the 'font' to the 'headerStyle'
+
+        //Creating the cell values in the header
+        Cell headerCell = header.createCell(0);
+        //Note that we have to reference 'header' in order to create a new cell and its value
+        /* Adding the name of the columns
+         * "WELL" "RATE" "Inventory" "DATE"  (Maybe later add "CURRENT RATE")
+         * */
+
+        //region Inventory headers
+        headerCell.setCellValue("Location");
+        headerCell.setCellStyle(headerStyle);//Calling the style that was set at "headerStyle" at top
+        //Adding new columns header
+        headerCell = header.createCell(1);//Second column
+        headerCell.setCellValue("QPD");
+        headerCell.setCellStyle(headerStyle);
+        //Adding new column header
+        headerCell = header.createCell(2);//Third column
+        headerCell.setCellValue("Inventory");
+        headerCell.setCellStyle(headerStyle);
+        //Adding new column header
+        headerCell = header.createCell(3);//Forth column
+        headerCell.setCellValue("Days Left");
+        headerCell.setCellStyle(headerStyle);
+        //endregion
+
+        //region Deliveries headers
+        Cell headerCell2 = header2.createCell(0); //For deliveries //First Column
+        headerCell2.setCellValue("Location");
+        headerCell2.setCellStyle(headerStyle);
+        headerCell2 = header2.createCell(1);//Second Column
+        headerCell2.setCellValue("Delivery");
+        headerCell2.setCellStyle(headerStyle);
+        headerCell2 = header2.createCell(2); // Third Column
+        //endregion
+
+
+        /*Creating the array that will contain the well Numbers/Names. NAME: 'wellLoc#'
+        the # corresponds to a gate number where the wells are located.
+        Another array will be created for the pumping rates 'wellRate#'
+         */
+        // region GATE 3 wells and rates ArrayList
+        ArrayList<String> wellLoc3 = new ArrayList<>();
+        wellLoc3.add("178"); // #0
+        wellLoc3.add("186"); // #1
+        wellLoc3.add("167"); // #2
+        //GATE 3 well rates
+        ArrayList<Double> wellRate3 = new ArrayList<>(); //Do not use primitive data set. Use 'Double'
+        wellRate3.add(12.0);
+        wellRate3.add(8.0);
+        wellRate3.add(8.0);
+        //endregion
+
+        //region GATE 4 wells and rates ArrayList
+        ArrayList<String> wellLoc4 = new ArrayList<>(); //array for the wells
+        ArrayList<Double> wellRate4 = new ArrayList<>(); //array for the rates
+        wellLoc4.add("1831");wellRate4.add(9.0);
+        wellLoc4.add("1835");wellRate4.add(10.0);
+        wellLoc4.add("1830");wellRate4.add(4.0);
+        wellLoc4.add("1401");wellRate4.add(4.0);
+        wellLoc4.add("1331");wellRate4.add(5.0);
+        wellLoc4.add("1330");wellRate4.add(7.0);
+        //endregion
+
+        //region Main Gate wells and ArrayList
+        ArrayList<String> wellLocMain = new ArrayList<>();
+        ArrayList<Double> wellRateMain = new ArrayList<>();
+        wellLocMain.add("1212"); wellRateMain.add(5.0);
+        wellLocMain.add("1111"); wellRateMain.add(7.0);
+        wellLocMain.add("2138"); wellRateMain.add(7.0);
+        wellLocMain.add("2145 WCI"); wellRateMain.add(9.0);
+        wellLocMain.add("2145 EB"); wellRateMain.add(4.0);
+        wellLocMain.add("2012"); wellRateMain.add(8.0);
+        wellLocMain.add("2762"); wellRateMain.add(21.0);//position 6
+
+        //Main Gate Part 2
+        wellLocMain.add("2775"); wellRateMain.add(14.0);//7
+        wellLocMain.add("3824"); wellRateMain.add(5.0);
+        wellLocMain.add("2317"); wellRateMain.add(2.0);
+        wellLocMain.add("2729"); wellRateMain.add(6.0);
+        wellLocMain.add("2745"); wellRateMain.add(9.0); //position 11
+
+        //Main Gate Part 3
+        wellLocMain.add("2794"); wellRateMain.add(4.0);//12
+        wellLocMain.add("2793"); wellRateMain.add(8.0);//13
+        wellLocMain.add("2795"); wellRateMain.add(8.0);//position 14
+        wellLocMain.add("1837"); wellRateMain.add(18.0); // Outside the main gate
+        wellLocMain.add("3909"); wellRateMain.add(4.0); //Outside the main gate
+
+
+        //endregion
+
+        //region Gate 2
+        ArrayList<String> wellLoc2 = new ArrayList<>(); //Array for the wells
+        ArrayList<Double> wellRate2 = new ArrayList<>(); //Array for the rates
+        wellLoc2.add("2710"); wellRate2.add(5.0);
+        wellLoc2.add("2904"); wellRate2.add(6.0);
+        wellLoc2.add("2749"); wellRate2.add(3.0);
+        wellLoc2.add("5026"); wellRate2.add(4.0);
+        //endregion
+
+        //region Meter Sites
+        ArrayList<String> wellMeterLoc = new ArrayList<>();
+        ArrayList<Double> wellMeterRate = new ArrayList<>();
+        wellMeterLoc.add("MS13 WGS"); wellMeterRate.add(1.0);
+        wellMeterLoc.add("MS13 WCI"); wellMeterRate.add(39.0);
+        wellMeterLoc.add("Comp St EB"); wellMeterRate.add(11.0);
+        wellMeterLoc.add("Comp St WGS"); wellMeterRate.add(38.0);
+        wellMeterLoc.add("MS 23 EB"); wellMeterRate.add(3.0);
+        wellMeterLoc.add("MS 23 WCI"); wellMeterRate.add(37.0);
+        wellMeterLoc.add("MS 26 EB"); wellMeterRate.add(2.0);
+        wellMeterLoc.add("MS 24 EB"); wellMeterRate.add(3.0);
+        //endregion
+
+        //region Well names in cell order
+        Row dataRow = sheet.createRow(1);//Starting at row 2 since row 1 is the titles
+        //region Gate 3 wells (Printed on Sheet even if no inventory taken)
+        Cell dataCell = dataRow.createCell(0);dataCell.setCellValue("178");
+        dataRow = sheet.createRow(2);dataCell = dataRow.createCell(0);
+        dataCell.setCellValue("186");dataRow = sheet.createRow(3);
+        dataCell = dataRow.createCell(0);dataCell.setCellValue("167");
+        //endregion
+
+        //region Gate 4 wells (Printed on Sheet even if no inventory taken)
+        dataRow = sheet.createRow(4);dataCell = dataRow.createCell(0);dataCell.setCellValue("1831");
+        dataRow = sheet.createRow(5);dataCell = dataRow.createCell(0);dataCell.setCellValue("1835");
+        dataRow = sheet.createRow(6);dataCell = dataRow.createCell(0);dataCell.setCellValue("1830");
+        dataRow = sheet.createRow(7);dataCell = dataRow.createCell(0);dataCell.setCellValue("1401");
+        dataRow = sheet.createRow(8);dataCell = dataRow.createCell(0);dataCell.setCellValue("1331");
+        dataRow = sheet.createRow(9);dataCell = dataRow.createCell(0);dataCell.setCellValue("1330");
+        //endregion
+
+        //region Main Gate wells (Printed on sheet even if no inventory taken)
+        dataRow = sheet.createRow(10); dataCell = dataRow.createCell(0); dataCell.setCellValue("1212");
+        dataRow = sheet.createRow(11); dataCell = dataRow.createCell(0); dataCell.setCellValue("1111");
+        dataRow = sheet.createRow(12); dataCell = dataRow.createCell(0); dataCell.setCellValue("2138");
+        dataRow = sheet.createRow(13); dataCell = dataRow.createCell(0); dataCell.setCellValue("2145 WCI");
+        dataRow = sheet.createRow(14); dataCell = dataRow.createCell(0); dataCell.setCellValue("2145 EB");
+        dataRow = sheet.createRow(15); dataCell = dataRow.createCell(0); dataCell.setCellValue("2012");
+        dataRow = sheet.createRow(16); dataCell = dataRow.createCell(0); dataCell.setCellValue("2762");
+
+        //part 2 Main Gate
+        dataRow = sheet.createRow(17); dataCell = dataRow.createCell(0); dataCell.setCellValue("2775");
+        dataRow = sheet.createRow(18); dataCell = dataRow.createCell(0); dataCell.setCellValue("3824");
+        dataRow = sheet.createRow(19); dataCell = dataRow.createCell(0); dataCell.setCellValue("2317");
+        dataRow = sheet.createRow(20); dataCell = dataRow.createCell(0); dataCell.setCellValue("2729");
+        dataRow = sheet.createRow(21); dataCell = dataRow.createCell(0); dataCell.setCellValue("2745");
+
+
+        //endregion
+
+        //region Gate 2 wells (Printed on sheet even of no inventory taken)
+        dataRow = sheet.createRow(22); dataCell = dataRow.createCell(0); dataCell.setCellValue("2710");
+        dataRow = sheet.createRow(23); dataCell = dataRow.createCell(0); dataCell.setCellValue("2904");
+        dataRow = sheet.createRow(24); dataCell = dataRow.createCell(0); dataCell.setCellValue("2749");
+        dataRow = sheet.createRow(25); dataCell = dataRow.createCell(0); dataCell.setCellValue("5026");
+        //endregion
+
+        //region Main Gate Part 3 wells (2794,2793,2795,1837,3909)
+        dataRow = sheet.createRow(26); dataCell = dataRow.createCell(0); dataCell.setCellValue("2794");
+        dataRow = sheet.createRow(27); dataCell = dataRow.createCell(0); dataCell.setCellValue("2793");
+        dataRow = sheet.createRow(28); dataCell = dataRow.createCell(0); dataCell.setCellValue("2795");
+        //Not in the main gate, they are outside.
+        dataRow = sheet.createRow(29); dataCell = dataRow.createCell(0); dataCell.setCellValue("1837");
+        dataRow = sheet.createRow(30); dataCell = dataRow.createCell(0); dataCell.setCellValue("3909");
+        //endregion
+
+        //Creating the Scanner for user input
+        Scanner console = new Scanner(System.in);
+
+        int count1 = 1; //Counting for the Deliveries worksheet
+        //While loop will allow to repeatedly input values until 'stop' is typed
+        String well = "prime"; //priming the loop
+        //MAIN while loop
+        while (!well.equals("STOP")) {
+            //Asking for the well name/number
+            System.out.print("Well: ");
+            String well1 = console.next();
+            well = well1.toUpperCase();
+
+            //adding a break to stop the loop when 'stop' is typed
+            if (well.equals("STOP")) {
+                break;
+            }
+            //region start if statement FOR ALL WELLS
+            else if (!well.equals("178") && !well.equals("186") && !well.equals("167") &&
+                    //Gate 4 (1831, 1835, 1830, 1401, 1331, 1330)
+                    !well.equals("1831") && !well.equals("1835") && !well.equals("1830") &&
+                    !well.equals("1401") && !well.equals("1331") && !well.equals("1330") &&
+                    //Main Gate (1212,1111,2138,2012,2762,2145EB,2145WCI)
+                    !well.equals("1212") && !well.equals("1111") && !well.equals("2138") &&
+                    !well.equals("2012") && !well.equals("2762") && !well.equals("2145EB") &&
+                    !well.equals("2145eb") && !well.equals("2145WCI") && !well.equals("2145wci") &&
+                    //Main gate 2
+                    !well.equals("2775") && !well.equals("3824") && !well.equals("2317") && !well.equals("2729") &&
+                    !well.equals("2745") &&
+                    //Main Gate part 3
+                    !well.equals("2794") && !well.equals("2793") && !well.equals("2795") && !well.equals("1837") &&
+                    !well.equals("3909") &&
+                    //Gate 2
+                    !well.equals("2710") && !well.equals("2904") && !well.equals("2749") && !well.equals("5026")
+
+            ) {
+                //If well entered is not valid, the loop will restart and ask the user again
+                System.out.println("Well not valid. Try again.");
+                continue; //Restart the loop
+            }
+            //endregion
+
+            //Asking the user to input the well inventory and rate (Before the main if statement)
+            System.out.print("Inventory: ");
+            Double inv = console.nextDouble();
+            //System.out.print("Current rate: ");
+            //Double rate = console.nextDouble();
+
+            //region metal tank dimensions. For wells that have metal tank only. see method below
+            double tLength = 36;
+            double tDiam = 30;
+            double tRad = tDiam / 2;
+            //endregion
+
+            //region GATE 3 MAIN if statement (WELLS 178, 186, 167)
+            if (well1.equals("178")) { //INDEX 0
+                double Rate178 = wellRate3.get(0);//**INCREMENTS**//
+                String Well178 = wellLoc3.get(0);//**INCREMENTS**//
+                double daysLeft = Math.round((inv - 35) / Rate178);
+                //Creating the rows where the data will be entered
+                dataRow = sheet.createRow(1); //Row number 2 THIS WILL INCREMENT
+                dataCell = dataRow.createCell(0); //starting in column 1
+                dataCell.setCellValue(Well178);
+                //Next Column
+                dataCell = dataRow.createCell(1);//Column 2;
+                dataCell.setCellValue(Rate178);
+                //Next Column
+                dataCell = dataRow.createCell(2);//Column 3
+                dataCell.setCellValue(inv);
+                //Next Column
+                dataCell = dataRow.createCell(3);//Column 4
+                dataCell.setCellValue(daysLeft);
+
+                //**Deliveries Sheet**//
+                if (inv <= 35.0) {
+                    //count1++;
+                    Row dataRow2 = sheet2.createRow(count1++); //Row number for the deliveries INCREMENT
+                    Cell dataCell2 = dataRow2.createCell(0);//Starting in column 1
+                    dataCell2.setCellValue(Well178); //Printing the name of well
+                    //Next Column
+                    if (((Rate178 / 4) * 30) < 55) { //**INCREMENTS**//
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("55");//Delivering 55
+                    }//Inside if
+                    else if ((Rate178 / 4) * 30 > 56) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("110"); //Delivering 110
+                    }//Inner else if
+                } //Outer if
+
+            } else if (well.equals("186")) { //INDEX 1
+                double Rate186 = wellRate3.get(1);//**INCREMENTS**//
+                String Well186 = wellLoc3.get(1);//**INCREMENTS**//
+                double daysLeft = Math.round((inv - 35) / Rate186);
+                //Creating the rows where the data will be entered
+                dataRow = sheet.createRow(2); //Row number 3 **THIS WILL INCREMENT**
+                dataCell = dataRow.createCell(0); //starting in column 1
+                dataCell.setCellValue(Well186);
+                //Next Column
+                dataCell = dataRow.createCell(1);//Column 2;
+                dataCell.setCellValue(Rate186);
+                //Next Column
+                dataCell = dataRow.createCell(2);//Column 3
+                dataCell.setCellValue(inv);
+                //Next Column
+                dataCell = dataRow.createCell(3);//Column 4
+                dataCell.setCellValue(daysLeft);
+
+                //**Deliveries Sheet**//
+                if (inv <= 35.0) {
+                    Row dataRow2 = sheet2.createRow(count1++); //Row number for the deliveries INCREMENT
+                    Cell dataCell2 = dataRow2.createCell(0);//Starting in column 1
+                    dataCell2.setCellValue(Well186);//**INCREMENTS**//
+                    //Next Column
+                    if (((Rate186 / 4) * 30) < 55) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("55");//Delivering 55
+                    }//Inside if
+                    else if ((Rate186 / 4) * 30 > 56) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("110"); //Delivering 110
+                    }//Inner else if
+                } //Outer if
+            } else if (well.equals("167")) { //INDEX 2
+                double Rate167 = wellRate3.get(2);//**INCREMENTS**//
+                String Well167 = wellLoc3.get(2);//**INCREMENTS**//
+                double daysLeft = Math.round((inv - 35) / Rate167);
+                //Creating the rows where the data will be entered
+                dataRow = sheet.createRow(3); //Row number 4 **THIS WILL INCREMENT**
+                dataCell = dataRow.createCell(0); //starting in column 1
+                dataCell.setCellValue(Well167);
+                //Next Column
+                dataCell = dataRow.createCell(1);//Column 2;
+                dataCell.setCellValue(Rate167);
+                //Next Column
+                dataCell = dataRow.createCell(2);//Column 3
+                dataCell.setCellValue(inv);
+                //Next Column
+                dataCell = dataRow.createCell(3);//Column 4
+                dataCell.setCellValue(daysLeft);
+
+                //**Deliveries Sheet**//
+                if (inv <= 35.0) {
+                    Row dataRow2 = sheet2.createRow(count1++); //Row number for the deliveries INCREMENT
+                    Cell dataCell2 = dataRow2.createCell(0);//Starting in column 1
+                    dataCell2.setCellValue(Well167);//**INCREMENTS**//
+                    //Next Column
+                    if (((Rate167 / 4) * 30) < 55) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("55");//Delivering 55
+                    }//Inside if
+                    else if ((Rate167 / 4) * 30 > 56) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("110"); //Delivering 110
+                    }//Inner else if
+                } //Outer if
+            }
+            //endregion
+
+            //region GATE 4 if statement (WELLS 1831, 1835, 1830, 1401, 1331, 1330)
+            if (well1.equals("1831")) { //INDEX 1
+                double Rate1831 = wellRate4.get(0);//**INCREMENTS**//
+                String Well1831 = wellLoc4.get(0);//**INCREMENTS**//
+                double daysLeft = Math.round((inv - 35) / Rate1831);
+                //Creating the rows where the data will be entered
+                /* *** */
+                dataRow = sheet.createRow(4); //Row number 5 THIS WILL INCREMENT
+                dataCell = dataRow.createCell(0); //starting in column 1
+                dataCell.setCellValue(Well1831);
+                //Next Column
+                dataCell = dataRow.createCell(1);//Column 2;
+                dataCell.setCellValue(Rate1831);
+                //Next Column
+                dataCell = dataRow.createCell(2);//Column 3
+                dataCell.setCellValue(inv);
+                //Next Column
+                dataCell = dataRow.createCell(3);//Column 4
+                dataCell.setCellValue(daysLeft);
+
+                //**Deliveries Sheet**//
+                if (inv <= 35.0) {
+                    //count1++;
+                    Row dataRow2 = sheet2.createRow(count1++); //Row number for the deliveries INCREMENT
+                    Cell dataCell2 = dataRow2.createCell(0);//Starting in column 1
+                    dataCell2.setCellValue(Well1831); //Printing the name of well
+                    //Next Column
+                    if (((Rate1831 / 4) * 30) < 55) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("55");//Delivering 55
+                    }//Inside if
+                    else if ((Rate1831 / 4) * 30 > 56) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("110"); //Delivering 110
+                    }//Inner else if
+                } //Outer if
+                }
+                else if (well1.equals("1835")) { //INDEX 2
+                double Rate1835 = wellRate4.get(1);//**INCREMENTS**//
+                String Well1835 = wellLoc4.get(1);//**INCREMENTS**//
+                double daysLeft = Math.round((inv - 35) / Rate1835);
+                //Creating the rows where the data will be entered
+                dataRow = sheet.createRow(5); //Row number 5 THIS WILL INCREMENT
+                dataCell = dataRow.createCell(0); //starting in column 1
+                dataCell.setCellValue(Well1835);
+                //Next Column
+                dataCell = dataRow.createCell(1);//Column 2;
+                dataCell.setCellValue(Rate1835);
+                //Next Column
+                dataCell = dataRow.createCell(2);//Column 3
+                dataCell.setCellValue(inv);
+                //Next Column
+                dataCell = dataRow.createCell(3);//Column 4
+                dataCell.setCellValue(daysLeft);
+
+
+                //**Deliveries Sheet**//
+                if (inv <= 35.0) {
+                    //count1++;
+                    Row dataRow2 = sheet2.createRow(count1++); //Row number for the deliveries INCREMENT
+                    Cell dataCell2 = dataRow2.createCell(0);//Starting in column 1
+                    dataCell2.setCellValue(Well1835); //Printing the name of well
+                    //Next Column
+                    if (((Rate1835 / 4) * 30) < 55) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("55");//Delivering 55
+                    }//Inside if
+                    else if ((Rate1835 / 4) * 30 > 56) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("110"); //Delivering 110
+                    }//Inner else if
+                } //Outer if
+                }
+                else if (well1.equals("1830")) { //INDEX 3
+                double Rate1830 = wellRate4.get(2);//**INCREMENTS**//
+                String Well1830 = wellLoc4.get(2);//**INCREMENTS**//
+                double daysLeft = Math.round((inv - 35) / Rate1830);
+                //Creating the rows where the data will be entered
+                dataRow = sheet.createRow(6); //Row number 5 THIS WILL INCREMENT
+                dataCell = dataRow.createCell(0); //starting in column 1
+                dataCell.setCellValue(Well1830);
+                //Next Column
+                dataCell = dataRow.createCell(1);//Column 2;
+                dataCell.setCellValue(Rate1830);
+                //Next Column
+                dataCell = dataRow.createCell(2);//Column 3
+                dataCell.setCellValue(inv);
+                //Next Column
+                dataCell = dataRow.createCell(3);//Column 4
+                dataCell.setCellValue(daysLeft);
+
+
+                //**Deliveries Sheet**//
+                if (inv <= 35.0) {
+                    //count1++;
+                    Row dataRow2 = sheet2.createRow(count1++); //Row number for the deliveries INCREMENT
+                    Cell dataCell2 = dataRow2.createCell(0);//Starting in column 1
+                    dataCell2.setCellValue(Well1830); //Printing the name of well
+                    //Next Column
+                    if (((Rate1830 / 4) * 30) < 55) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("55");//Delivering 55
+                    }//Inside if
+                    else if ((Rate1830 / 4) * 30 > 56) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("110"); //Delivering 110
+                    }//Inner else if
+                } //Outer if
+            }//else if brace
+            else if (well1.equals("1401")) { //INDEX 4
+                double Rate1401 = wellRate4.get(3);//**INCREMENTS**//
+                String Well1401 = wellLoc4.get(3);//**INCREMENTS**//
+                double daysLeft = Math.round((inv - 35) / Rate1401);
+                //Creating the rows where the data will be entered
+                dataRow = sheet.createRow(7); //Row number 5 THIS WILL INCREMENT
+                dataCell = dataRow.createCell(0); //starting in column 1
+                dataCell.setCellValue(Well1401);
+                //Next Column
+                dataCell = dataRow.createCell(1);//Column 2;
+                dataCell.setCellValue(Rate1401);
+                //Next Column
+                dataCell = dataRow.createCell(2);//Column 3
+                dataCell.setCellValue(inv);
+                //Next Column
+                dataCell = dataRow.createCell(3);//Column 4
+                dataCell.setCellValue(daysLeft);
+
+
+                //**Deliveries Sheet**//
+                if (inv <= 35.0) {
+                    //count1++;
+                    Row dataRow2 = sheet2.createRow(count1++); //Row number for the deliveries INCREMENT
+                    Cell dataCell2 = dataRow2.createCell(0);//Starting in column 1
+                    dataCell2.setCellValue(Well1401); //Printing the name of well
+                    //Next Column
+                    if (((Rate1401 / 4) * 30) < 55) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("55");//Delivering 55
+                    }//Inside if
+                    else if ((Rate1401 / 4) * 30 > 56) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("110"); //Delivering 110
+                    }//Inner else if
+                } //Outer if
+            }
+            else if (well1.equals("1331")) { //INDEX 5
+                double Rate1331 = wellRate4.get(4);//**INCREMENTS**//
+                String Well1331 = wellLoc4.get(4);//**INCREMENTS**//
+                double daysLeft = Math.round((inv - 35) / Rate1331);
+                //Creating the rows where the data will be entered
+                dataRow = sheet.createRow(8); //Row number 5 THIS WILL INCREMENT
+                dataCell = dataRow.createCell(0); //starting in column 1
+                dataCell.setCellValue(Well1331);
+                //Next Column
+                dataCell = dataRow.createCell(1);//Column 2;
+                dataCell.setCellValue(Rate1331);
+                //Next Column
+                dataCell = dataRow.createCell(2);//Column 3
+                dataCell.setCellValue(inv);
+                //Next Column
+                dataCell = dataRow.createCell(3);//Column 4
+                dataCell.setCellValue(daysLeft);
+
+
+                //**Deliveries Sheet**//
+                if (inv <= 35.0) {
+                    //count1++;
+                    Row dataRow2 = sheet2.createRow(count1++); //Row number for the deliveries INCREMENT
+                    Cell dataCell2 = dataRow2.createCell(0);//Starting in column 1
+                    dataCell2.setCellValue(Well1331); //Printing the name of well
+                    //Next Column
+                    if (((Rate1331 / 4) * 30) < 55) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("55");//Delivering 55
+                    }//Inside if
+                    else if ((Rate1331 / 4) * 30 > 56) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("110"); //Delivering 110
+                    }//Inner else if
+                } //Outer if
+            }
+            else if (well1.equals("1330")) { //INDEX 6
+                double Rate1330 = wellRate4.get(5);//**INCREMENTS**//
+                String Well1330 = wellLoc4.get(5);//**INCREMENTS**//
+                double daysLeft = Math.round((inv - 35) / Rate1330);
+                //Creating the rows where the data will be entered
+                dataRow = sheet.createRow(9); //Row number 5 THIS WILL INCREMENT
+                dataCell = dataRow.createCell(0); //starting in column 1
+                dataCell.setCellValue(Well1330);
+                //Next Column
+                dataCell = dataRow.createCell(1);//Column 2;
+                dataCell.setCellValue(Rate1330);
+                //Next Column
+                dataCell = dataRow.createCell(2);//Column 3
+                dataCell.setCellValue(inv);
+                //Next Column
+                dataCell = dataRow.createCell(3);//Column 4
+                dataCell.setCellValue(daysLeft);
+
+
+                //**Deliveries Sheet**//
+                if (inv <= 35.0) {
+                    //count1++;
+                    Row dataRow2 = sheet2.createRow(count1++); //Row number for the deliveries INCREMENT
+                    Cell dataCell2 = dataRow2.createCell(0);//Starting in column 1
+                    dataCell2.setCellValue(Well1330); //Printing the name of well
+                    //Next Column
+                    if (((Rate1330 / 4) * 30) < 55) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("55");//Delivering 55
+                    }//Inside if
+                    else if ((Rate1330 / 4) * 30 > 56) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("110"); //Delivering 110
+                    }//Inner else if
+                } //Outer if
+            }
+            //endregion
+
+            //region Main Gate Part 1 (1212, 1111, 2138, 2145, 2012, 2762)
+            else if (well1.equals("1212")) { //INDEX 1
+                double Rate1212 = wellRateMain.get(0);//**INCREMENTS**//
+                String Well1212 = wellLocMain.get(0);//**INCREMENTS**//
+                double daysLeft = Math.round((inv - 35) / Rate1212);
+                //Creating the rows where the data will be entered
+                dataRow = sheet.createRow(10); //Row number 5 THIS WILL INCREMENT
+                dataCell = dataRow.createCell(0); //starting in column 1
+                dataCell.setCellValue(Well1212);
+                //Next Column
+                dataCell = dataRow.createCell(1);//Column 2;
+                dataCell.setCellValue(Rate1212);
+                //Next Column
+                dataCell = dataRow.createCell(2);//Column 3
+                dataCell.setCellValue(inv);
+                //Next Column
+                dataCell = dataRow.createCell(3);//Column 4
+                dataCell.setCellValue(daysLeft);
+
+
+                //**Deliveries Sheet**//
+                if (inv <= 35.0) {
+                    //count1++;
+                    Row dataRow2 = sheet2.createRow(count1++); //Row number for the deliveries INCREMENT
+                    Cell dataCell2 = dataRow2.createCell(0);//Starting in column 1
+                    dataCell2.setCellValue(Well1212); //Printing the name of well
+                    //Next Column
+                    if (((Rate1212 / 4) * 30) < 55) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("55");//Delivering 55
+                    }//Inside if
+                    else if ((Rate1212 / 4) * 30 > 56) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("110"); //Delivering 110
+                    }//Inner else if
+                } //Outer if
+            }
+            else if (well1.equals("1111")) { //INDEX 2
+                double Rate1111 = wellRateMain.get(1);//**INCREMENTS**//
+                String Well1111 = wellLocMain.get(1);//**INCREMENTS**//
+                double daysLeft = Math.round((inv - 35) / Rate1111);
+                //Creating the rows where the data will be entered
+                dataRow = sheet.createRow(11); //Row number 5 THIS WILL INCREMENT
+                dataCell = dataRow.createCell(0); //starting in column 1
+                dataCell.setCellValue(Well1111);
+                //Next Column
+                dataCell = dataRow.createCell(1);//Column 2;
+                dataCell.setCellValue(Rate1111);
+                //Next Column
+                dataCell = dataRow.createCell(2);//Column 3
+                dataCell.setCellValue(inv);
+                //Next Column
+                dataCell = dataRow.createCell(3);//Column 4
+                dataCell.setCellValue(daysLeft);
+
+
+                //**Deliveries Sheet**//
+                if (inv <= 35.0) {
+                    //count1++;
+                    Row dataRow2 = sheet2.createRow(count1++); //Row number for the deliveries INCREMENT
+                    Cell dataCell2 = dataRow2.createCell(0);//Starting in column 1
+                    dataCell2.setCellValue(Well1111); //Printing the name of well
+                    //Next Column
+                    if (((Rate1111 / 4) * 30) < 55) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("55");//Delivering 55
+                    }//Inside if
+                    else if ((Rate1111 / 4) * 30 > 56) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("110"); //Delivering 110
+                    }//Inner else if
+                } //Outer if
+            }
+            else if (well1.equals("2138")) { //INDEX 3
+                double Rate2138 = wellRateMain.get(2);//**INCREMENTS**//
+                String Well2138 = wellLocMain.get(2);//**INCREMENTS**//
+                double daysLeft = Math.round((inv - 35) / Rate2138);
+                //Creating the rows where the data will be entered
+                dataRow = sheet.createRow(12); //Row number 5 THIS WILL INCREMENT
+                dataCell = dataRow.createCell(0); //starting in column 1
+                dataCell.setCellValue(Well2138);
+                //Next Column
+                dataCell = dataRow.createCell(1);//Column 2;
+                dataCell.setCellValue(Rate2138);
+                //Next Column
+                dataCell = dataRow.createCell(2);//Column 3
+                dataCell.setCellValue(inv);
+                //Next Column
+                dataCell = dataRow.createCell(3);//Column 4
+                dataCell.setCellValue(daysLeft);
+
+
+                //**Deliveries Sheet**//
+                if (inv <= 35.0) {
+                    //count1++;
+                    Row dataRow2 = sheet2.createRow(count1++); //Row number for the deliveries INCREMENT
+                    Cell dataCell2 = dataRow2.createCell(0);//Starting in column 1
+                    dataCell2.setCellValue(Well2138); //Printing the name of well
+                    //Next Column
+                    if (((Rate2138 / 4) * 30) < 55) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("55");//Delivering 55
+                    }//Inside if
+                    else if ((Rate2138 / 4) * 30 > 56) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("110"); //Delivering 110
+                    }//Inner else if
+                } //Outer if
+            }
+            else if (well1.equals("2145EB") || well1.equals("2145eb")) { //INDEX 5
+                double Rate2145EB = wellRateMain.get(4);//**INCREMENTS**//
+                String Well2145EB = wellLocMain.get(4);//**INCREMENTS**//
+                double daysLeft = Math.round((inv - 35) / Rate2145EB);
+                //Creating the rows where the data will be entered
+                dataRow = sheet.createRow(14); //Row number 5 THIS WILL INCREMENT
+                dataCell = dataRow.createCell(0); //starting in column 1
+                dataCell.setCellValue(Well2145EB);
+                //Next Column
+                dataCell = dataRow.createCell(1);//Column 2;
+                dataCell.setCellValue(Rate2145EB);
+                //Next Column
+                dataCell = dataRow.createCell(2);//Column 3
+                //Calculating metal tank
+                double liqVol = Math.round(tankEq(inv,tLength,tRad) / 231); //The 231 converts to Gallons
+                dataCell.setCellValue(liqVol);
+                //Next Column
+                dataCell = dataRow.createCell(3);//Column 4
+                dataCell.setCellValue(daysLeft);
+
+
+                //**Deliveries Sheet**//
+                if (inv <= 35.0) {
+                    //count1++;
+                    Row dataRow2 = sheet2.createRow(count1++); //Row number for the deliveries INCREMENT
+                    Cell dataCell2 = dataRow2.createCell(0);//Starting in column 1
+                    dataCell2.setCellValue(Well2145EB); //Printing the name of well
+                    //Next Column
+                    if (((Rate2145EB / 4) * 30) < 55) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("55");//Delivering 55
+                    }//Inside if
+                    else if ((Rate2145EB / 4) * 30 > 56) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("110"); //Delivering 110
+                    }//Inner else if
+                } //Outer if
+            }
+            else if (well1.equals("2145WCI") || well1.equals("2145wci")) { //INDEX 4
+                double Rate2145WCI = wellRateMain.get(3);//**INCREMENTS**//
+                String Well2145WCI = wellLocMain.get(3);//**INCREMENTS**//
+                double daysLeft = Math.round((inv - 35) / Rate2145WCI);
+                //Creating the rows where the data will be entered
+                dataRow = sheet.createRow(13); //Row number 5 THIS WILL INCREMENT
+                dataCell = dataRow.createCell(0); //starting in column 1
+                dataCell.setCellValue(Well2145WCI);
+                //Next Column
+                dataCell = dataRow.createCell(1);//Column 2;
+                dataCell.setCellValue(Rate2145WCI);
+                //Next Column
+                dataCell = dataRow.createCell(2);//Column 3
+                dataCell.setCellValue(inv);
+                //Next Column
+                dataCell = dataRow.createCell(3);//Column 4
+                dataCell.setCellValue(daysLeft);
+
+
+                //**Deliveries Sheet**//
+                if (inv <= 35.0) {
+                    //count1++;
+                    Row dataRow2 = sheet2.createRow(count1++); //Row number for the deliveries INCREMENT
+                    Cell dataCell2 = dataRow2.createCell(0);//Starting in column 1
+                    dataCell2.setCellValue(Well2145WCI); //Printing the name of well
+                    //Next Column
+                    if (((Rate2145WCI / 4) * 30) < 55) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("55");//Delivering 55
+                    }//Inside if
+                    else if ((Rate2145WCI / 4) * 30 > 56) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("110"); //Delivering 110
+                    }//Inner else if
+                } //Outer if
+            }
+            else if (well1.equals("2012")) { //INDEX 6
+                double Rate2012 = wellRateMain.get(5);//**INCREMENTS**//
+                String Well2012 = wellLocMain.get(5);//**INCREMENTS**//
+                double daysLeft = Math.round((inv - 35) / Rate2012);
+                //Creating the rows where the data will be entered
+                dataRow = sheet.createRow(15); //Row number 5 THIS WILL INCREMENT
+                dataCell = dataRow.createCell(0); //starting in column 1
+                dataCell.setCellValue(Well2012);
+                //Next Column
+                dataCell = dataRow.createCell(1);//Column 2;
+                dataCell.setCellValue(Rate2012);
+                //Next Column
+                dataCell = dataRow.createCell(2);//Column 3
+                dataCell.setCellValue(inv);
+                //Next Column
+                dataCell = dataRow.createCell(3);//Column 4
+                dataCell.setCellValue(daysLeft);
+
+
+                //**Deliveries Sheet**//
+                if (inv <= 35.0) {
+                    //count1++;
+                    Row dataRow2 = sheet2.createRow(count1++); //Row number for the deliveries INCREMENT
+                    Cell dataCell2 = dataRow2.createCell(0);//Starting in column 1
+                    dataCell2.setCellValue(Well2012); //Printing the name of well
+                    //Next Column
+                    if (((Rate2012 / 4) * 30) < 55) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("55");//Delivering 55
+                    }//Inside if
+                    else if ((Rate2012 / 4) * 30 > 56) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("110"); //Delivering 110
+                    }//Inner else if
+                } //Outer if
+            }
+            else if (well1.equals("2762")) { //INDEX 7
+                double Rate2762 = wellRateMain.get(6);//**INCREMENTS**//
+                String Well2762 = wellLocMain.get(6);//**INCREMENTS**//
+                double daysLeft = Math.round((inv - 35) / Rate2762);
+                //Creating the rows where the data will be entered
+                dataRow = sheet.createRow(16); //Row number 5 THIS WILL INCREMENT
+                dataCell = dataRow.createCell(0); //starting in column 1
+                dataCell.setCellValue(Well2762);
+                //Next Column
+                dataCell = dataRow.createCell(1);//Column 2;
+                dataCell.setCellValue(Rate2762);
+                //Next Column
+                dataCell = dataRow.createCell(2);//Column 3
+                dataCell.setCellValue(inv);
+                //Next Column
+                dataCell = dataRow.createCell(3);//Column 4
+                dataCell.setCellValue(daysLeft);
+
+
+                //**Deliveries Sheet**//
+                if (inv <= 35.0) {
+                    //count1++;
+                    Row dataRow2 = sheet2.createRow(count1++); //Row number for the deliveries INCREMENT
+                    Cell dataCell2 = dataRow2.createCell(0);//Starting in column 1
+                    dataCell2.setCellValue(Well2762); //Printing the name of well
+                    //Next Column
+                    if (((Rate2762 / 4) * 30) < 55) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("55");//Delivering 55
+                    }//Inside if
+                    else if ((Rate2762 / 4) * 30 > 56) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("110"); //Delivering 110
+                    }//Inner else if
+                } //Outer if
+            }
+            //Main Gate Part 2 (2775,3824,2317,2729,2745)
+            else if (well1.equals("2775")) { //INDEX 8
+                double Rate2775 = wellRateMain.get(7);//**INCREMENTS**//
+                String Well2775 = wellLocMain.get(7);//**INCREMENTS**//
+                double daysLeft = Math.round((inv - 35) / Rate2775);
+                //Creating the rows where the data will be entered
+                dataRow = sheet.createRow(17); //Row number 5 THIS WILL INCREMENT
+                dataCell = dataRow.createCell(0); //starting in column 1
+                dataCell.setCellValue(Well2775);
+                //Next Column
+                dataCell = dataRow.createCell(1);//Column 2;
+                dataCell.setCellValue(Rate2775);
+                //Next Column
+                dataCell = dataRow.createCell(2);//Column 3
+                dataCell.setCellValue(inv);
+                //Next Column
+                dataCell = dataRow.createCell(3);//Column 4
+                dataCell.setCellValue(daysLeft);
+
+
+                //**Deliveries Sheet**//
+                if (inv <= 35.0) {
+                    //count1++;
+                    Row dataRow2 = sheet2.createRow(count1++); //Row number for the deliveries INCREMENT
+                    Cell dataCell2 = dataRow2.createCell(0);//Starting in column 1
+                    dataCell2.setCellValue(Well2775); //Printing the name of well
+                    //Next Column
+                    if (((Rate2775 / 4) * 30) < 55) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("55");//Delivering 55
+                    }//Inside if
+                    else if ((Rate2775 / 4) * 30 > 56) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("110"); //Delivering 110
+                    }//Inner else if
+                } //Outer if
+            }
+            else if (well1.equals("3824")) { //INDEX 9
+                double Rate3824 = wellRateMain.get(8);//**INCREMENTS**//
+                String Well3824 = wellLocMain.get(8);//**INCREMENTS**//
+                double daysLeft = Math.round((inv - 35) / Rate3824);
+                //Creating the rows where the data will be entered
+                dataRow = sheet.createRow(18); //Row number 5 THIS WILL INCREMENT
+                dataCell = dataRow.createCell(0); //starting in column 1
+                dataCell.setCellValue(Well3824);
+                //Next Column
+                dataCell = dataRow.createCell(1);//Column 2;
+                dataCell.setCellValue(Rate3824);
+                //Next Column
+                dataCell = dataRow.createCell(2);//Column 3
+                dataCell.setCellValue(inv);
+                //Next Column
+                dataCell = dataRow.createCell(3);//Column 4
+                dataCell.setCellValue(daysLeft);
+
+
+                //**Deliveries Sheet**//
+                if (inv <= 35.0) {
+                    //count1++;
+                    Row dataRow2 = sheet2.createRow(count1++); //Row number for the deliveries INCREMENT
+                    Cell dataCell2 = dataRow2.createCell(0);//Starting in column 1
+                    dataCell2.setCellValue(Well3824); //Printing the name of well
+                    //Next Column
+                    if (((Rate3824 / 4) * 30) < 55) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("55");//Delivering 55
+                    }//Inside if
+                    else if ((Rate3824 / 4) * 30 > 56) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("110"); //Delivering 110
+                    }//Inner else if
+                } //Outer if
+            }
+            else if (well1.equals("2317")) { //INDEX 10
+                double Rate2317 = wellRateMain.get(9);//**INCREMENTS**//
+                String Well2317 = wellLocMain.get(9);//**INCREMENTS**//
+                double daysLeft = Math.round((inv - 35) / Rate2317);
+                //Creating the rows where the data will be entered
+                dataRow = sheet.createRow(19); //Row number 5 THIS WILL INCREMENT
+                dataCell = dataRow.createCell(0); //starting in column 1
+                dataCell.setCellValue(Well2317);
+                //Next Column
+                dataCell = dataRow.createCell(1);//Column 2;
+                dataCell.setCellValue(Rate2317);
+                //Next Column
+                dataCell = dataRow.createCell(2);//Column 3
+                dataCell.setCellValue(inv);
+                //Next Column
+                dataCell = dataRow.createCell(3);//Column 4
+                dataCell.setCellValue(daysLeft);
+
+
+                //**Deliveries Sheet**//
+                if (inv <= 35.0) {
+                    //count1++;
+                    Row dataRow2 = sheet2.createRow(count1++); //Row number for the deliveries INCREMENT
+                    Cell dataCell2 = dataRow2.createCell(0);//Starting in column 1
+                    dataCell2.setCellValue(Well2317); //Printing the name of well
+                    //Next Column
+                    if (((Rate2317 / 4) * 30) < 55) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("55");//Delivering 55
+                    }//Inside if
+                    else if ((Rate2317 / 4) * 30 > 56) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("110"); //Delivering 110
+                    }//Inner else if
+                } //Outer if
+            }
+            else if (well1.equals("2729")) { //INDEX 11
+                double Rate2729 = wellRateMain.get(10);//**INCREMENTS**//
+                String Well2729 = wellLocMain.get(10);//**INCREMENTS**//
+                double daysLeft = Math.round((inv - 35) / Rate2729);
+                //Creating the rows where the data will be entered
+                dataRow = sheet.createRow(20); //Row number 5 THIS WILL INCREMENT
+                dataCell = dataRow.createCell(0); //starting in column 1
+                dataCell.setCellValue(Well2729);
+                //Next Column
+                dataCell = dataRow.createCell(1);//Column 2;
+                dataCell.setCellValue(Rate2729);
+                //Next Column
+                dataCell = dataRow.createCell(2);//Column 3
+                dataCell.setCellValue(inv);
+                //Next Column
+                dataCell = dataRow.createCell(3);//Column 4
+                dataCell.setCellValue(daysLeft);
+
+
+                //**Deliveries Sheet**//
+                if (inv <= 35.0) {
+                    //count1++;
+                    Row dataRow2 = sheet2.createRow(count1++); //Row number for the deliveries INCREMENT
+                    Cell dataCell2 = dataRow2.createCell(0);//Starting in column 1
+                    dataCell2.setCellValue(Well2729); //Printing the name of well
+                    //Next Column
+                    if (((Rate2729 / 4) * 30) < 55) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("55");//Delivering 55
+                    }//Inside if
+                    else if ((Rate2729 / 4) * 30 > 56) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("110"); //Delivering 110
+                    }//Inner else if
+                } //Outer if
+            }
+            else if (well1.equals("2745")) { //INDEX 12
+                double Rate2745 = wellRateMain.get(11);//**INCREMENTS**//
+                String Well2745 = wellLocMain.get(11);//**INCREMENTS**//
+                double daysLeft = Math.round((inv - 35) / Rate2745);
+                //Creating the rows where the data will be entered
+                dataRow = sheet.createRow(21); //Row number 5 THIS WILL INCREMENT
+                dataCell = dataRow.createCell(0); //starting in column 1
+                dataCell.setCellValue(Well2745);
+                //Next Column
+                dataCell = dataRow.createCell(1);//Column 2
+                dataCell.setCellValue(Rate2745);
+                //Next Column
+                dataCell = dataRow.createCell(2);//Column 3
+                dataCell.setCellValue(inv);
+                //Next Column
+                dataCell = dataRow.createCell(3);//Column 4
+                dataCell.setCellValue(daysLeft);
+
+
+                //**Deliveries Sheet**//
+                if (inv <= 35.0) {
+                    //count1++;
+                    Row dataRow2 = sheet2.createRow(count1++); //Row number for the deliveries INCREMENT
+                    Cell dataCell2 = dataRow2.createCell(0);//Starting in column 1
+                    dataCell2.setCellValue(Well2745); //Printing the name of well
+                    //Next Column
+                    if (((Rate2745 / 4) * 30) < 55) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("55");//Delivering 55
+                    }//Inside if
+                    else if ((Rate2745 / 4) * 30 > 56) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("110"); //Delivering 110
+                    }//Inner else if
+                } //Outer if
+            }
+            //Main gate part 3 (2794,2793,2795,1837)
+            else if (well1.equals("2794")) { //INDEX 13
+                double Rate2794 = wellRateMain.get(12);//**INCREMENTS**//
+                String Well2794 = wellLocMain.get(12);//**INCREMENTS**//
+                double daysLeft = Math.round((inv - 35) / Rate2794);
+                //Creating the rows where the data will be entered
+                dataRow = sheet.createRow(26); // THIS WILL INCREMENT
+                dataCell = dataRow.createCell(0); //starting in column 1
+                dataCell.setCellValue(Well2794);
+                //Next Column
+                dataCell = dataRow.createCell(1);//Column 2
+                dataCell.setCellValue(Rate2794);
+                //Next Column
+                dataCell = dataRow.createCell(2);//Column 3
+                dataCell.setCellValue(inv);
+                //Next Column
+                dataCell = dataRow.createCell(3);//Column 4
+                dataCell.setCellValue(daysLeft);
+
+
+                //**Deliveries Sheet**//
+                if (inv <= 35.0) {
+                    //count1++;
+                    Row dataRow2 = sheet2.createRow(count1++); //Row number for the deliveries INCREMENT
+                    Cell dataCell2 = dataRow2.createCell(0);//Starting in column 1
+                    dataCell2.setCellValue(Well2794); //Printing the name of well
+                    //Next Column
+                    if (((Rate2794 / 4) * 30) < 55) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("55");//Delivering 55
+                    }//Inside if
+                    else if ((Rate2794 / 4) * 30 > 56) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("110"); //Delivering 110
+                    }//Inner else if
+                } //Outer if
+            }
+            else if (well1.equals("2793")) { //INDEX 14
+                double Rate2793 = wellRateMain.get(13);//**INCREMENTS**//
+                String Well2793 = wellLocMain.get(13);//**INCREMENTS**//
+                double daysLeft = Math.round((inv - 35) / Rate2793);
+                //Creating the rows where the data will be entered
+                dataRow = sheet.createRow(27); // THIS WILL INCREMENT
+                dataCell = dataRow.createCell(0); //starting in column 1
+                dataCell.setCellValue(Well2793);
+                //Next Column
+                dataCell = dataRow.createCell(1);//Column 2
+                dataCell.setCellValue(Rate2793);
+                //Next Column
+                dataCell = dataRow.createCell(2);//Column 3
+                dataCell.setCellValue(inv);
+                //Next Column
+                dataCell = dataRow.createCell(3);//Column 4
+                dataCell.setCellValue(daysLeft);
+
+
+                //**Deliveries Sheet**//
+                if (inv <= 35.0) {
+                    //count1++;
+                    Row dataRow2 = sheet2.createRow(count1++); //Row number for the deliveries INCREMENT
+                    Cell dataCell2 = dataRow2.createCell(0);//Starting in column 1
+                    dataCell2.setCellValue(Well2793); //Printing the name of well
+                    //Next Column
+                    if (((Rate2793 / 4) * 30) < 55) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("55");//Delivering 55
+                    }//Inside if
+                    else if ((Rate2793 / 4) * 30 > 56) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("110"); //Delivering 110
+                    }//Inner else if
+                } //Outer if
+            }
+            else if (well1.equals("2795")) { //INDEX 15
+                double Rate2795 = wellRateMain.get(14);//**INCREMENTS**//
+                String Well2795 = wellLocMain.get(14);//**INCREMENTS**//
+                double daysLeft = Math.round((inv - 35) / Rate2795);
+                //Creating the rows where the data will be entered
+                dataRow = sheet.createRow(28); // THIS WILL INCREMENT
+                dataCell = dataRow.createCell(0); //starting in column 1
+                dataCell.setCellValue(Well2795);
+                //Next Column
+                dataCell = dataRow.createCell(1);//Column 2
+                dataCell.setCellValue(Rate2795);
+                //Next Column
+                dataCell = dataRow.createCell(2);//Column 3
+                dataCell.setCellValue(inv);
+                //Next Column
+                dataCell = dataRow.createCell(3);//Column 4
+                dataCell.setCellValue(daysLeft);
+
+
+                //**Deliveries Sheet**//
+                if (inv <= 35.0) {
+                    //count1++;
+                    Row dataRow2 = sheet2.createRow(count1++); //Row number for the deliveries INCREMENT
+                    Cell dataCell2 = dataRow2.createCell(0);//Starting in column 1
+                    dataCell2.setCellValue(Well2795); //Printing the name of well
+                    //Next Column
+                    if (((Rate2795 / 4) * 30) < 55) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("55");//Delivering 55
+                    }//Inside if
+                    else if ((Rate2795 / 4) * 30 > 56) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("110"); //Delivering 110
+                    }//Inner else if
+                } //Outer if
+            }
+            else if (well1.equals("1837")) { //INDEX 16
+                double Rate1837 = wellRateMain.get(15);//**INCREMENTS**//
+                String Well1837 = wellLocMain.get(15);//**INCREMENTS**//
+                double daysLeft = Math.round((inv - 35) / Rate1837);
+                //Creating the rows where the data will be entered
+                dataRow = sheet.createRow(29); // THIS WILL INCREMENT
+                dataCell = dataRow.createCell(0); //starting in column 1
+                dataCell.setCellValue(Well1837);
+                //Next Column
+                dataCell = dataRow.createCell(1);//Column 2
+                dataCell.setCellValue(Rate1837);
+                //Next Column
+                dataCell = dataRow.createCell(2);//Column 3
+                dataCell.setCellValue(inv);
+                //Next Column
+                dataCell = dataRow.createCell(3);//Column 4
+                dataCell.setCellValue(daysLeft);
+
+
+                //**Deliveries Sheet**//
+                if (inv <= 35.0) {
+                    //count1++;
+                    Row dataRow2 = sheet2.createRow(count1++); //Row number for the deliveries INCREMENT
+                    Cell dataCell2 = dataRow2.createCell(0);//Starting in column 1
+                    dataCell2.setCellValue(Well1837); //Printing the name of well
+                    //Next Column
+                    if (((Rate1837 / 4) * 30) < 55) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("55");//Delivering 55
+                    }//Inside if
+                    else if ((Rate1837 / 4) * 30 > 56) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("110"); //Delivering 110
+                    }//Inner else if
+                } //Outer if
+            }
+            else if (well1.equals("3909")) { //INDEX 17
+                double Rate3909 = wellRateMain.get(16);//**INCREMENTS**//
+                String Well3909 = wellLocMain.get(16);//**INCREMENTS**//
+                double daysLeft = Math.round((inv - 35) / Rate3909);
+                //Creating the rows where the data will be entered
+                dataRow = sheet.createRow(30); // THIS WILL INCREMENT
+                dataCell = dataRow.createCell(0); //starting in column 1
+                dataCell.setCellValue(Well3909);
+                //Next Column
+                dataCell = dataRow.createCell(1);//Column 2
+                dataCell.setCellValue(Rate3909);
+                //Next Column
+                dataCell = dataRow.createCell(2);//Column 3
+                dataCell.setCellValue(inv);
+                //Next Column
+                dataCell = dataRow.createCell(3);//Column 4
+                dataCell.setCellValue(daysLeft);
+
+
+                //**Deliveries Sheet**//
+                if (inv <= 35.0) {
+                    //count1++;
+                    Row dataRow2 = sheet2.createRow(count1++); //Row number for the deliveries INCREMENT
+                    Cell dataCell2 = dataRow2.createCell(0);//Starting in column 1
+                    dataCell2.setCellValue(Well3909); //Printing the name of well
+                    //Next Column
+                    if (((Rate3909 / 4) * 30) < 55) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("55");//Delivering 55
+                    }//Inside if
+                    else if ((Rate3909 / 4) * 30 > 56) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("110"); //Delivering 110
+                    }//Inner else if
+                } //Outer if
+            }
+
+
+            //endregion
+
+            //region Gate 2 IF statement (2710, 2904, 2749, 5026)
+            if (well1.equals("2710")) { //INDEX 1
+                double Rate2710 = wellRate2.get(0);//**INCREMENTS**//
+                String Well2710 = wellLoc2.get(0);//**INCREMENTS**//
+                double daysLeft = Math.round((inv - 35) / Rate2710);
+                //Creating the rows where the data will be entered
+                dataRow = sheet.createRow(22); //Row number 5 THIS WILL INCREMENT
+                dataCell = dataRow.createCell(0); //starting in column 1
+                dataCell.setCellValue(Well2710);
+                //Next Column
+                dataCell = dataRow.createCell(1);//Column 2
+                dataCell.setCellValue(Rate2710);
+                //Next Column
+                dataCell = dataRow.createCell(2);//Column 3
+                dataCell.setCellValue(inv);
+                //Next Column
+                dataCell = dataRow.createCell(3);//Column 4
+                dataCell.setCellValue(daysLeft);
+                //**Deliveries Sheet**//
+                if (inv <= 35.0) {
+                    //count1++;
+                    Row dataRow2 = sheet2.createRow(count1++); //Row number for the deliveries INCREMENT
+                    Cell dataCell2 = dataRow2.createCell(0);//Starting in column 1
+                    dataCell2.setCellValue(Well2710); //Printing the name of well
+                    //Next Column
+                    if (((Rate2710 / 4) * 30) < 55) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("55");//Delivering 55
+                    }//Inside if
+                    else if ((Rate2710 / 4) * 30 > 56) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("110"); //Delivering 110
+                    }//Inner else if
+                } //Outer if
+            }
+            else if (well1.equals("2904")) { //INDEX 2
+                double Rate2904 = wellRate2.get(1);//**INCREMENTS**//
+                String Well2904 = wellLoc2.get(1);//**INCREMENTS**//
+                double daysLeft = Math.round((inv - 35) / Rate2904);
+                //Creating the rows where the data will be entered
+                dataRow = sheet.createRow(23); //THIS WILL INCREMENT
+                dataCell = dataRow.createCell(0); //starting in column 1
+                dataCell.setCellValue(Well2904);
+                //Next Column
+                dataCell = dataRow.createCell(1);//Column 2
+                dataCell.setCellValue(Rate2904);
+                //Next Column
+                dataCell = dataRow.createCell(2);//Column 3
+                dataCell.setCellValue(inv);
+                //Next Column
+                dataCell = dataRow.createCell(3);//Column 4
+                dataCell.setCellValue(daysLeft);
+                //**Deliveries Sheet**//
+                if (inv <= 35.0) {
+                    //count1++;
+                    Row dataRow2 = sheet2.createRow(count1++); //Row number for the deliveries INCREMENT
+                    Cell dataCell2 = dataRow2.createCell(0);//Starting in column 1
+                    dataCell2.setCellValue(Well2904); //Printing the name of well
+                    //Next Column
+                    if (((Rate2904 / 4) * 30) < 55) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("55");//Delivering 55
+                    }//Inside if
+                    else if ((Rate2904 / 4) * 30 > 56) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("110"); //Delivering 110
+                    }//Inner else if
+                } //Outer if
+            }
+            else if (well1.equals("2749")) { //INDEX 3
+                double Rate2749 = wellRate2.get(2);//**INCREMENTS**//
+                String Well2749 = wellLoc2.get(2);//**INCREMENTS**//
+                double daysLeft = Math.round((inv - 35) / Rate2749);
+                //Creating the rows where the data will be entered
+                dataRow = sheet.createRow(24); //THIS WILL INCREMENT
+                dataCell = dataRow.createCell(0); //starting in column 1
+                dataCell.setCellValue(Well2749);
+                //Next Column
+                dataCell = dataRow.createCell(1);//Column 2
+                dataCell.setCellValue(Rate2749);
+                //Next Column
+                dataCell = dataRow.createCell(2);//Column 3
+                dataCell.setCellValue(inv);
+                //Next Column
+                dataCell = dataRow.createCell(3);//Column 4
+                dataCell.setCellValue(daysLeft);
+                //**Deliveries Sheet**//
+                if (inv <= 35.0) {
+                    //count1++;
+                    Row dataRow2 = sheet2.createRow(count1++); //Row number for the deliveries INCREMENT
+                    Cell dataCell2 = dataRow2.createCell(0);//Starting in column 1
+                    dataCell2.setCellValue(Well2749); //Printing the name of well
+                    //Next Column
+                    if (((Rate2749 / 4) * 30) < 55) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("55");//Delivering 55
+                    }//Inside if
+                    else if ((Rate2749 / 4) * 30 > 56) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("110"); //Delivering 110
+                    }//Inner else if
+                } //Outer if
+            }
+            else if (well1.equals("5026")) { //INDEX 4
+                double Rate5026 = wellRate2.get(3);//**INCREMENTS**//
+                String Well5026 = wellLoc2.get(3);//**INCREMENTS**//
+                double daysLeft = Math.round((inv - 35) / Rate5026);
+                //Creating the rows where the data will be entered
+                dataRow = sheet.createRow(25); //THIS WILL INCREMENT
+                dataCell = dataRow.createCell(0); //starting in column 1
+                dataCell.setCellValue(Well5026);
+                //Next Column
+                dataCell = dataRow.createCell(1);//Column 2
+                dataCell.setCellValue(Rate5026);
+                //Next Column
+                dataCell = dataRow.createCell(2);//Column 3
+                dataCell.setCellValue(inv);
+                //Next Column
+                dataCell = dataRow.createCell(3);//Column 4
+                dataCell.setCellValue(daysLeft);
+                //**Deliveries Sheet**//
+                if (inv <= 35.0) {
+                    //count1++;
+                    Row dataRow2 = sheet2.createRow(count1++); //Row number for the deliveries INCREMENT
+                    Cell dataCell2 = dataRow2.createCell(0);//Starting in column 1
+                    dataCell2.setCellValue(Well5026); //Printing the name of well
+                    //Next Column
+                    if (((Rate5026 / 4) * 30) < 55) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("55");//Delivering 55
+                    }//Inside if
+                    else if ((Rate5026 / 4) * 30 > 56) {
+                        dataCell2 = dataRow2.createCell(1);//Column 2
+                        dataCell2.setCellValue("110"); //Delivering 110
+                    }//Inner else if
+                } //Outer if
+            }
+
+
+            //endregion
+
+
+
+            //endregion
+
+
+
+            }//while brace
+
+
+            //Setting the file name and the path
+            try (FileOutputStream outputStream =
+                         new FileOutputStream
+                                 (new File("C:/Users/Mario/Documents/Personal/JavaNotepad/Excel Inventory  Test 1.xlsx"))) {
+                workbook.write(outputStream);
+            }//try brace
+            catch (Exception e) {
+                System.out.println(e);
+            }
+            System.out.println("Excel File Created"); //This helps to know if the program was created or not
+
+
+        }//main brace
+
+    //region tank equation method
+    public static double tankEq(double inv, double tLength, double tRad) {
+        return tLength * (Math.pow(tRad,2) * Math.acos((tRad-inv)/tRad) - (tRad-inv)
+        * Math.sqrt(2*tRad*inv-Math.pow(inv,2)));
+    }//tankEq mathod brace
+
+    //endregion
+
+}//class brace
